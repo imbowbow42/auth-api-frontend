@@ -6,6 +6,12 @@ let errorMsgElement;
 let successMsgElement;
 
 document.addEventListener('DOMContentLoaded', () => {
+  // --- Auth Redirect: if already logged in, go to home ---
+  if (localStorage.getItem('accessToken')) {
+    window.location.href = '/home.html';
+    return;
+  }
+
   // --- Theme Toggle Logic ---
   const themeToggleBtn = document.getElementById('theme-toggle');
   const sunIcon = document.getElementById('sun-icon');
@@ -97,9 +103,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Reset UI state
     errorMsgElement.classList.add('hidden');
-    errorMsgElement.textContent = '';
+    document.getElementById('error-text').textContent = '';
     successMsgElement.classList.add('hidden');
-    successMsgElement.textContent = '';
+    document.getElementById('success-text').textContent = '';
     
     // Show loader
     submitBtn.disabled = true;
@@ -131,16 +137,14 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error(data.message || `${currentMode === 'login' ? 'Login' : 'Registration'} failed.`);
       }
 
-      // Success!
-      successMsgElement.textContent = `${currentMode === 'login' ? 'Login' : 'Registration'} successful! Welcome.`;
-      successMsgElement.classList.remove('hidden');
-      
+      // Success — save token and redirect
       if (data.accessToken) {
         localStorage.setItem('accessToken', data.accessToken);
       }
+      window.location.href = '/home.html';
       
     } catch (error) {
-      errorMsgElement.textContent = error.message;
+      document.getElementById('error-text').textContent = error.message;
       errorMsgElement.classList.remove('hidden');
     } finally {
       // Revert button state
@@ -176,18 +180,14 @@ window.handleGoogleLogin = async (response) => {
       throw new Error(data.message || 'Google Login failed.');
     }
 
-    if (successMsgElement) {
-      successMsgElement.textContent = 'Google Authentication successful! Connecting...';
-      successMsgElement.classList.remove('hidden');
-    }
-    
     if (data.accessToken) {
       localStorage.setItem('accessToken', data.accessToken);
     }
+    window.location.href = '/home.html';
 
   } catch (error) {
     if (errorMsgElement) {
-      errorMsgElement.textContent = error.message;
+      document.getElementById('error-text').textContent = error.message;
       errorMsgElement.classList.remove('hidden');
     }
   }
