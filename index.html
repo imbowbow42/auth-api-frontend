@@ -7,6 +7,11 @@
     <title>Login - Platform</title>
     <!-- Premium fonts: Inter for UI, Playfair Display mimicking Tiempos for Headers -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+    <script>
+      window.handleGoogleLogin = (response) => {
+        window.dispatchEvent(new CustomEvent('google-sso-callback', { detail: response }));
+      };
+    </script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
   </head>
   <body>

@@ -12,6 +12,19 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
+  // --- Google Logout Handler ---
+  if (localStorage.getItem('googleLogoutPending') === 'true') {
+    const checkGoogleAndDisable = setInterval(() => {
+      if (window.google && window.google.accounts && window.google.accounts.id) {
+        window.google.accounts.id.disableAutoSelect();
+        localStorage.removeItem('googleLogoutPending');
+        clearInterval(checkGoogleAndDisable);
+      }
+    }, 100);
+    // Cleanup to prevent infinite loop
+    setTimeout(() => { clearInterval(checkGoogleAndDisable); localStorage.removeItem('googleLogoutPending'); }, 5000);
+  }
+
   // --- Theme Toggle Logic ---
   const themeToggleBtn = document.getElementById('theme-toggle');
   const sunIcon = document.getElementById('sun-icon');
@@ -96,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // --- Form Submission Logic ---
-  const API_BASE_URL = 'http://localhost:3000/auth';
+  const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/auth`;
 
   loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -156,15 +169,16 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // --- Google SSO Callback ---
-// Exposed globally so the Google '<script>' can invoke it via 'data-callback'
-window.handleGoogleLogin = async (response) => {
+// Now listens to custom event dispatched by the inline <script> in index.html
+window.addEventListener('google-sso-callback', async (event) => {
+  const response = event.detail;
   const { credential } = response;
   
   if (errorMsgElement) errorMsgElement.classList.add('hidden');
   if (successMsgElement) successMsgElement.classList.add('hidden');
 
   try {
-    const res = await fetch('http://localhost:3000/auth/google-login', {
+    const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/google-login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -191,4 +205,4 @@ window.handleGoogleLogin = async (response) => {
       errorMsgElement.classList.remove('hidden');
     }
   }
-};
+});
